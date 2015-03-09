@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 // 
 // Copyright (c) 2007-2009, Sean Chambers <schambers80@gmail.com>
 // Copyright (c) 2011, Grant Archibald
@@ -52,7 +52,7 @@ namespace FluentMigrator.Builders.IfDatabase
         {
             if (databaseType == null) throw new ArgumentNullException("databaseType");
 
-            _context = DatabaseTypeApplies(context, databaseType) ? context : new MigrationContext(new MigrationConventions(), new NullIfDatabaseProcessor(), context.MigrationAssembly, context.ApplicationContext, "");
+            _context = DatabaseTypeApplies(context, databaseType) ? context : new MigrationContext(new MigrationConventions(), new NullIfDatabaseProcessor(), context.MigrationAssemblies, context.ApplicationContext, "");
         }
 
         /// <summary>

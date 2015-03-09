@@ -41,7 +41,7 @@ namespace FluentMigrator.Tests.Integration.Processors.Firebird
         [Test]
         public override void CallingTableExistsCanAcceptTableNameWithSingleQuote()
         {
-            using (var table = new FirebirdTestTable("Test'Table", Processor, null, "id int"))
+            using (var table = new FirebirdTestTable("\"Test'Table\"", Processor, null, "id int"))
                 Processor.TableExists(null, table.Name).ShouldBeTrue();
         }
 
@@ -70,5 +70,7 @@ namespace FluentMigrator.Tests.Integration.Processors.Firebird
             using (var table = new FirebirdTestTable(Processor, "TestSchema", "id int"))
                 Processor.TableExists("TestSchema", table.Name).ShouldBeTrue();
         }
+
+
     }
 }

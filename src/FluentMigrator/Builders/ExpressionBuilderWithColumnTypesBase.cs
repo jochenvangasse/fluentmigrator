@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using FluentMigrator.Expressions;
 using FluentMigrator.Infrastructure;
 using FluentMigrator.Model;
@@ -74,6 +74,12 @@ namespace FluentMigrator.Builders
         public NextT AsDateTime()
         {
             Column.Type = DbType.DateTime;
+            return (NextT)(object)this;
+        }
+
+        public NextT AsDateTimeOffset()
+        {
+            Column.Type = DbType.DateTimeOffset;
             return (NextT)(object)this;
         }
 

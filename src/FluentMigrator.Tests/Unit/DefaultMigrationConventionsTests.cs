@@ -111,34 +111,41 @@ namespace FluentMigrator.Tests.Unit
         }
 
         [Test]
+        public void GetMaintenanceStageReturnsCorrectStage()
+        {
+            DefaultMigrationConventions.GetMaintenanceStage(typeof (MaintenanceAfterEach))
+                .ShouldBe(MigrationStage.AfterEach);
+        }
+
+        [Test]
         public void MigrationInfoShouldRetainMigration()
         {
-            var migration = new DefaultConventionMigrationFake();
-            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migration);
-            migrationinfo.Migration.ShouldBeSameAs(migration);
+            var migrationType = typeof(DefaultConventionMigrationFake);
+            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migrationType);
+            migrationinfo.Migration.GetType().ShouldBeSameAs(migrationType);
         }
 
         [Test]
         public void MigrationInfoShouldExtractVersion()
         {
-            var migration = new DefaultConventionMigrationFake();
-            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migration);
+            var migrationType = typeof(DefaultConventionMigrationFake);
+            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migrationType);
             migrationinfo.Version.ShouldBe(123);
         }
 
         [Test]
         public void MigrationInfoShouldExtractTransactionBehavior()
         {
-            var migration = new DefaultConventionMigrationFake();
-            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migration);
+            var migrationType = typeof(DefaultConventionMigrationFake);
+            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migrationType);
             migrationinfo.TransactionBehavior.ShouldBe(TransactionBehavior.None);
         }
 
         [Test]
         public void MigrationInfoShouldExtractTraits()
         {
-            var migration = new DefaultConventionMigrationFake();
-            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migration);
+            var migrationType = typeof(DefaultConventionMigrationFake);
+            var migrationinfo = DefaultMigrationConventions.GetMigrationInfoFor(migrationType);
             migrationinfo.Trait("key").ShouldBe("test");
         }
 
@@ -273,6 +280,7 @@ namespace FluentMigrator.Tests.Unit
         }
     }
 
+
     [Tags("BE", "UK", "Staging", "Production")]
     public class TaggedWithBeAndUkAndProductionAndStagingInOneTagsAttribute
     {
@@ -311,4 +319,12 @@ namespace FluentMigrator.Tests.Unit
         public override void Up() { }
         public override void Down() { }
     }
+
+    [Maintenance(MigrationStage.AfterEach)]
+    internal class MaintenanceAfterEach : Migration
+    {
+        public override void Up() { }
+        public override void Down() { }
+    }
+
 }

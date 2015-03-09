@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using FluentMigrator.Expressions;
-using System.Reflection;
 using System.Data;
-using FluentMigrator.Model;
+using System.Linq;
+using System.Reflection;
 using FluentMigrator.Builders.Execute;
+using FluentMigrator.Expressions;
+using FluentMigrator.Model;
+using FluentMigrator.Runner.Generators.Firebird;
 
 namespace FluentMigrator.Runner.Processors.Firebird
 {
@@ -22,7 +23,7 @@ namespace FluentMigrator.Runner.Processors.Firebird
             Processor = processor;
             Expression = expression;
             this.expressionType = expressionType;
-            if (processor.FBOptions.UndoEnabled)
+            if (processor.FBOptions.UndoEnabled && !processor.IsRunningOutOfMigrationScope())
                 SetupUndoExpressions();
         }
 
@@ -109,14 +110,14 @@ namespace FluentMigrator.Runner.Processors.Firebird
             CanUndo = true;
             FirebirdSchemaProvider schema = new FirebirdSchemaProvider(Processor);
             FirebirdTableSchema table = schema.GetTableSchema(expression.TableName);
+            var quoter = new FirebirdQuoter();
             AlterColumnExpression alter = new AlterColumnExpression()
             {
                 SchemaName = String.Empty,
                 TableName = expression.TableName,
-                Column = table.Definition.Columns.First(x => x.Name == expression.Column.Name)
+                Column = table.Definition.Columns.First(x => x.Name == quoter.ToFbObjectName(expression.Column.Name))
             };
             UndoExpressions.Add(alter);
-            
         }
 
         protected void SetupUndoDeleteData(DeleteDataExpression expression)
@@ -189,7 +190,13 @@ namespace FluentMigrator.Runner.Processors.Firebird
                     }
                     if (match)
                     {
-                        UpdateDataExpression update = new UpdateDataExpression() { SchemaName = String.Empty, TableName = expression.TableName, IsAllRows = false };
+                        UpdateDataExpression update = new UpdateDataExpression() 
+                        { 
+                            SchemaName = expression.SchemaName, 
+                            TableName = expression.TableName, 
+                            IsAllRows = false,
+                            Set = new List<KeyValuePair<string, object>>()
+                        };
                         foreach (var set in expression.Set)
                         {
                             update.Set.Add(new KeyValuePair<string, object>(set.Key, dr[set.Key]));
@@ -197,7 +204,11 @@ namespace FluentMigrator.Runner.Processors.Firebird
                         foreach (ColumnDefinition colDef in table.Definition.Columns)
                         {
                             if (colDef.IsPrimaryKey)
+                            {
+                                if (update.Where == null)
+                                    update.Where = new List<KeyValuePair<string, object>>();
                                 update.Where.Add(new KeyValuePair<string, object>(colDef.Name, dr[colDef.Name]));
+                            }
                         }
                         UndoExpressions.Add(update);
                     }
@@ -348,7 +359,13 @@ namespace FluentMigrator.Runner.Processors.Firebird
                         CanUndo = false;
                         return;
                     }
-                    UpdateDataExpression update = new UpdateDataExpression() { TableName = expression.TableName, IsAllRows = false };
+                    UpdateDataExpression update = new UpdateDataExpression() 
+                    { 
+                        TableName = expression.TableName, 
+                        IsAllRows = false, 
+                        Set = new List<KeyValuePair<string, object>>(),
+                        Where = new List<KeyValuePair<string, object>>()
+                    };
                     foreach (string columnName in expression.ColumnNames)
                     {
                         update.Set.Add(new KeyValuePair<string, object>(columnName, dr[columnName]));

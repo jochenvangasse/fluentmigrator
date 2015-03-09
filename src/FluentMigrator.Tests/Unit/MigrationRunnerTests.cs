@@ -72,7 +72,7 @@ namespace FluentMigrator.Tests.Unit
             _runnerContextMock.SetupGet(x => x.Namespace).Returns("FluentMigrator.Tests.Integration.Migrations");
             _runnerContextMock.SetupGet(x => x.Announcer).Returns(_announcer.Object);
             _runnerContextMock.SetupGet(x => x.StopWatch).Returns(_stopWatch.Object);
-            _runnerContextMock.SetupGet(x => x.Target).Returns(Assembly.GetExecutingAssembly().ToString());
+            _runnerContextMock.SetupGet(x => x.Targets).Returns(new string[] { Assembly.GetExecutingAssembly().ToString()});
             _runnerContextMock.SetupGet(x => x.Connection).Returns(IntegrationTestOptions.SqlServer2008.ConnectionString);
             _runnerContextMock.SetupGet(x => x.Database).Returns("sqlserver");
             _runnerContextMock.SetupGet(x => x.ApplicationContext).Returns(_applicationContext);
@@ -109,6 +109,27 @@ namespace FluentMigrator.Tests.Unit
             }
 
             _fakeVersionLoader.LoadVersionInfo();
+        }
+
+        [Test]
+        public void ProfilesAreAppliedWhenMigrateUpIsCalledWithNoVersion()
+        {
+            _runner.MigrateUp();
+            _profileLoaderMock.Verify(x => x.ApplyProfiles(), Times.Once());
+        }
+
+        [Test]
+        public void ProfilesAreAppliedWhenMigrateUpIsCalledWithVersionParameter()
+        {
+            _runner.MigrateUp(2009010101);
+            _profileLoaderMock.Verify(x => x.ApplyProfiles(), Times.Once());
+        }
+
+        [Test]
+        public void ProfilesAreAppliedWhenMigrateDownIsCalled()
+        {
+            _runner.MigrateDown(2009010101);
+            _profileLoaderMock.Verify(x => x.ApplyProfiles(), Times.Once());
         }
 
         /// <summary>Unit test which ensures that the application context is correctly propagated down to each migration class.</summary>
@@ -235,7 +256,8 @@ namespace FluentMigrator.Tests.Unit
         [Test]
         public void LoadsCorrectCallingAssembly()
         {
-            _runner.MigrationAssembly.ShouldBe(Assembly.GetAssembly(typeof(MigrationRunnerTests)));
+            var asm = _runner.MigrationAssemblies.Assemblies.Single();
+            asm.ShouldBe(Assembly.GetAssembly(typeof(MigrationRunnerTests)));
         }
 
         [Test]

@@ -62,9 +62,13 @@ namespace FluentMigrator.Runner.Generators.Oracle
             {
                 case SystemMethods.NewGuid:
                     return "sys_guid()";
+                case SystemMethods.CurrentDateTime:
+                    return "CURRENT_TIMESTAMP";
+                case SystemMethods.CurrentUser:
+                    return "USER";
             }
 
-            return null;
+            throw new NotImplementedException();
         }
 
         protected override string GetPrimaryKeyConstraintName(IEnumerable<ColumnDefinition> primaryKeyColumns, string tableName)
